@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<ui:composition xmlns:f="http://java.sun.com/jsf/core"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+	<h:head>
+	</h:head>
+	<h:body styleClass="login">
+		<h:form id="form">
+			<p:dataTable var="users" value="#{userBean.users}" paginator="true"
+				widgetVar="usersTable" rows="10" sortMode="multiple"
+				paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+				rowsPerPageTemplate="5,10,15" selectionMode="single" id="userTable"
+				lazy="true">
+				<f:facet name="header">
+					<p:outputPanel style="text-align: right">
+						<h:outputText value="Search all fields:" />
+						<p:inputText id="globalFilter" onkeyup="PF('usersTable').filter()"
+							style="width:150px" placeholder="Enter keyword" />
+					</p:outputPanel>
+				</f:facet>
+				<p:column headerText="Id" sortBy="#{users.id}"
+					filterBy="#{users.id}" name="id">
+					<h:outputText value="#{users.id}" />
+				</p:column>
+				<p:column headerText="Login" sortBy="#{users.login}"
+					filterBy="#{users.login}" name="login">
+					<h:outputText value="#{users.login}"/>
+				</p:column>
+				<p:column headerText="Firstname" sortBy="#{users.firstname}"
+					filterBy="#{users.firstname}" name="firstname">
+					<h:outputText value="#{users.firstname}"/>
+				</p:column>
+				<p:column headerText="Lastname" sortBy="#{users.lastname}"
+					filterBy="#{users.lastname}" name="lastname">
+					<h:outputText value="#{users.lastname}"/>
+				</p:column>
+				<p:column headerText="DayOfBirth" sortBy="#{users.dayofbirth}"
+					filterBy="#{users.dayofbirth}" name="dayofbirth">
+					<h:outputText value="#{users.dayofbirth}"/>
+				</p:column>
+				<p:column headerText="District" sortBy="#{users.district}"
+					filterBy="#{users.district}" name="district">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('usersTable').filter()" id="filter">
+							<f:selectItem itemLabel="Select One" itemValue="#{null}"
+								noSelectionOption="true" />
+							<f:selectItems value="#{userBean.districts}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="#{users.district}" />
+				</p:column>
+				<p:column headerText="City" sortBy="#{users.city}"
+					filterBy="#{users.city}" name="city">
+					<f:facet name="filter">
+						<p:selectCheckboxMenu label="Select one"
+							onchange="PF('usersTable').filter()" panelStyle="width:170px"
+							scrollHeight="150">
+							<f:selectItems value="#{userBean.cities}" />
+						</p:selectCheckboxMenu>
+					</f:facet>
+					<h:outputText value="#{users.city}" />
+				</p:column>
+			</p:dataTable>
+		</h:form>
+	</h:body>
+</ui:composition>
