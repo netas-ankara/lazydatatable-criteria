@@ -1,9 +1,11 @@
 package com.buraku.netas.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.buraku.netas.domain.ColumnInfo;
 import com.buraku.netas.domain.User;
 import com.buraku.netas.domain.UserDTO;
 import com.buraku.netas.repository.UserRepository;
@@ -31,6 +34,7 @@ import javax.persistence.criteria.*;
 public class UserService {
 
 	private List<UserDTO> list;
+	private List<ColumnInfo> colList;
 	private Predicate finalQuery;
 	private Predicate andQuery;
 
@@ -51,7 +55,8 @@ public class UserService {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Page<UserDTO> findByCriteria(String sort, Pageable pageable, Map<String, List<String>> filtersMap, Boolean globalFilterCheck) {
+	public Page<UserDTO> findByCriteria(String sort, Pageable pageable, Map<String, List<String>> filtersMap,
+			Boolean globalFilterCheck) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<UserDTO> cq = cb.createQuery(UserDTO.class);
 		Root<UserDTO> iRoot = cq.from(UserDTO.class);
@@ -65,7 +70,6 @@ public class UserService {
 
 		filtersMap.entrySet().stream().filter(v -> v.getValue() != null && v.getValue().size() > 0).forEach(entry -> {
 			entry.getValue().forEach(k -> {
-
 				try {
 					bJoin.<String>get(entry.getKey()).as(String.class);
 
@@ -73,7 +77,7 @@ public class UserService {
 					Expression convertedColumnName = cb.function("TO_CHAR", String.class, e1);
 					if (entry.getValue().size() > 1 || globalFilterCheck) {
 						predicatesOr.add(cb.like(cb.lower(convertedColumnName), "%" + k.toLowerCase() + "%"));
-					}else {
+					} else {
 						predicatesAnd.add(cb.like(cb.lower(convertedColumnName), "%" + k.toLowerCase() + "%"));
 					}
 				} catch (Exception e) {
@@ -83,34 +87,34 @@ public class UserService {
 							Expression convertedColumnName = cb.function("TO_CHAR", String.class, e1);
 							if (entry.getValue().size() > 1 || globalFilterCheck) {
 								predicatesOr.add(cb.like(convertedColumnName, "%" + k + "%"));
-							}else {
+							} else {
 								predicatesAnd.add(cb.like(convertedColumnName, "%" + k + "%"));
 							}
 						} else {
 							if (entry.getValue().size() > 1 || globalFilterCheck) {
-								predicatesOr.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())), "%" + k.toLowerCase() + "%"));
-							}else {
-								predicatesAnd.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())), "%" + k.toLowerCase() + "%"));
+								predicatesOr.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())),
+										"%" + k.toLowerCase() + "%"));
+							} else {
+								predicatesAnd.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())),
+										"%" + k.toLowerCase() + "%"));
 							}
 						}
 					}
 				}
 			});
-			
 		});
 
 		Predicate[] predArrayOr = new Predicate[predicatesOr.size()];
 		Predicate[] predArrayAnd = new Predicate[predicatesAnd.size()];
-				
+
 		predicatesOr.toArray(predArrayOr);
 		predicatesAnd.toArray(predArrayAnd);
-						
-		finalQuery = cb.or(predArrayOr);
-		andQuery = cb.and(predArrayAnd);		
-		//String globalValue = filtersMap.get("globalFilter").toString().trim();
-		Predicate pFinal = predArrayOr.length >= 2 ? cb.and(cb.or(finalQuery), andQuery) : cb.and(cb.or(cb.conjunction(), finalQuery), andQuery);
 
-		
+		finalQuery = cb.or(predArrayOr);
+		andQuery = cb.and(predArrayAnd);
+		Predicate pFinal = predArrayOr.length >= 2 ? cb.and(cb.or(finalQuery), andQuery)
+				: cb.and(cb.or(cb.conjunction(), finalQuery), andQuery);
+
 		cq.where(pFinal);
 
 		Long count = calculateCount(filtersMap);
@@ -136,6 +140,7 @@ public class UserService {
 		cq.orderBy(orders);
 		TypedQuery<UserDTO> query = em.createQuery(cq);
 		this.result = new PageImpl<UserDTO>(query.getResultList(), pageable, count);
+		this.setColumns(this.distinguishColumns((List<UserDTO>) result.getContent()));
 		this.setWrappedData((List<UserDTO>) result.getContent());
 		return result;
 	}
@@ -162,7 +167,7 @@ public class UserService {
 					Expression convertedColumnName = cb.function("TO_CHAR", String.class, e1);
 					if (entry.getValue().size() > 1) {
 						predicatesOr.add(cb.like(cb.lower(convertedColumnName), "%" + k.toLowerCase() + "%"));
-					}else {
+					} else {
 						predicatesAnd.add(cb.like(cb.lower(convertedColumnName), "%" + k.toLowerCase() + "%"));
 					}
 				} catch (Exception e) {
@@ -172,40 +177,73 @@ public class UserService {
 							Expression convertedColumnName = cb.function("TO_CHAR", String.class, e1);
 							if (entry.getValue().size() > 1) {
 								predicatesOr.add(cb.like(convertedColumnName, "%" + k + "%"));
-							}else {
+							} else {
 								predicatesAnd.add(cb.like(convertedColumnName, "%" + k + "%"));
 							}
 						} else {
 							if (entry.getValue().size() > 1) {
-								predicatesOr.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())), "%" + k.toLowerCase() + "%"));
-							}else {
-								predicatesAnd.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())), "%" + k.toLowerCase() + "%"));
+								predicatesOr.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())),
+										"%" + k.toLowerCase() + "%"));
+							} else {
+								predicatesAnd.add(cb.like(cb.lower(iRoot.<String>get(entry.getKey())),
+										"%" + k.toLowerCase() + "%"));
 							}
 						}
 					}
 				}
 			});
-			
+
 		});
-		
+
 		Predicate[] predArrayOr = new Predicate[predicatesOr.size()];
 		Predicate[] predArrayAnd = new Predicate[predicatesAnd.size()];
-				
+
 		predicatesOr.toArray(predArrayOr);
 		predicatesAnd.toArray(predArrayAnd);
-				
+
 		finalQuery = cb.or(predArrayOr);
 		andQuery = cb.and(predArrayAnd);
-		Predicate pFinal = predArrayOr.length >= 2 ? cb.and(cb.or(finalQuery), andQuery) : cb.and(cb.or(cb.conjunction(), finalQuery), andQuery);
+		Predicate pFinal = predArrayOr.length >= 2 ? cb.and(cb.or(finalQuery), andQuery)
+				: cb.and(cb.or(cb.conjunction(), finalQuery), andQuery);
 
 		sc.where(pFinal);
-		
+
 		sc.select(cb.count(iRoot));
 
 		Long count = em.createQuery(sc).getSingleResult();
 
 		return count;
 
+	}
+	
+	private List<ColumnInfo> distinguishColumns(List<UserDTO> result) {
+		result.forEach(entry -> {
+			colList = new ArrayList<>();
+			String[] splitTheToString = entry.toString().split("=");
+			for (int i = 0; i < splitTheToString.length - 1; i++) {
+				try {
+					if (!splitTheToString[i].split(",")[1].equals("city") && !splitTheToString[i].split(",")[1].equals("district")) {
+						colList.add(new ColumnInfo(splitTheToString[i].split(",")[1],
+								splitTheToString[i].split(",")[1].toUpperCase()));
+					}
+				} catch (Exception e) {
+					if (!splitTheToString[i].split(",")[0].equals("city") && !splitTheToString[i].split(",")[0].equals("district")) {
+						colList.add(new ColumnInfo(splitTheToString[i].split(",")[0],
+								splitTheToString[i].split(",")[0].toUpperCase()));
+					}
+				}
+			}
+			return;
+		});
+		return colList;
+	}
+
+	public void setColumns(List<ColumnInfo> colList) {
+		this.colList = colList;
+	}
+
+	public List<ColumnInfo> getColumns() {
+		return this.colList;
 	}
 
 	public void setWrappedData(List<UserDTO> list) {

@@ -22,26 +22,13 @@
 							style="width:150px" placeholder="Enter keyword" />
 					</p:outputPanel>
 				</f:facet>
-				<p:column headerText="Id" sortBy="#{users.id}"
-					filterBy="#{users.id}" name="id">
-					<h:outputText value="#{users.id}" />
-				</p:column>
-				<p:column headerText="Login" sortBy="#{users.login}"
-					filterBy="#{users.login}" name="login">
-					<h:outputText value="#{users.login}"/>
-				</p:column>
-				<p:column headerText="Firstname" sortBy="#{users.firstname}"
-					filterBy="#{users.firstname}" name="firstname">
-					<h:outputText value="#{users.firstname}"/>
-				</p:column>
-				<p:column headerText="Lastname" sortBy="#{users.lastname}"
-					filterBy="#{users.lastname}" name="lastname">
-					<h:outputText value="#{users.lastname}"/>
-				</p:column>
-				<p:column headerText="DayOfBirth" sortBy="#{users.dayofbirth}"
-					filterBy="#{users.dayofbirth}" name="dayofbirth">
-					<h:outputText value="#{users.dayofbirth}"/>
-				</p:column>
+				<p:columns value="#{userBean.getColumns()}" var="col"
+					sortBy="#{users[col.header]}" filterBy="#{users[col.header]}" id="dynamicColumns">
+					<f:facet name="header">
+						<h:outputText value="#{col.property}" />
+					</f:facet>
+					<h:outputText value="#{users[col.header]}" />
+				</p:columns>
 				<p:column headerText="District" sortBy="#{users.district}"
 					filterBy="#{users.district}" name="district">
 					<f:facet name="filter">

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.faces.context.FacesContext;
 
+import org.primefaces.component.api.DynamicColumn;
 import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.LazyDataModel;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 
+import com.buraku.netas.domain.ColumnInfo;
 import com.buraku.netas.domain.UserDTO;
 import com.buraku.netas.service.UserService;
 
@@ -71,6 +73,7 @@ public class UserLazyDataModel extends LazyDataModel<UserDTO> implements Selecta
 		return filterAndSort(first, pageSize, filters, sort);
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<UserDTO> filterAndSort(int first, int pageSize, Map<String, Object> filters, Sort sort) {
 		Boolean globalFilterCheck = false;
 		Map<String, List<String>> newMap = new HashMap<String, List<String>>();
@@ -94,8 +97,16 @@ public class UserLazyDataModel extends LazyDataModel<UserDTO> implements Selecta
 						.findComponent("form:userTable");
 				List<UIColumn> column = dataTable.getColumns();
 				for (UIColumn uiColumn : column) {
-					newMap.put(uiColumn.getHeaderText().toLowerCase(),
-							Arrays.asList(newMap.get("globalFilter").toString().replace("[", "").replace("]", "")));
+					try {
+						newMap.put(uiColumn.getHeaderText().toLowerCase(),
+								Arrays.asList(newMap.get("globalFilter").toString().replace("[", "").replace("]", "")));
+					}catch(Exception e) {
+						List<ColumnInfo> columns = userService.getColumns();
+						columns.forEach(header -> {
+							newMap.put(header.getHeader(),
+									Arrays.asList(newMap.get("globalFilter").toString().replace("[", "").replace("]", "")));
+						});
+					}
 				}
 				globalFilterCheck = true;
 			}

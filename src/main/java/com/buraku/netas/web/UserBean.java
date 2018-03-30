@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.buraku.netas.domain.ColumnInfo;
 import com.buraku.netas.domain.UserDTO;
 import com.buraku.netas.service.UserService;
 
@@ -23,6 +24,7 @@ public class UserBean {
 
 	private List<String> districts;
 	private List<String> cities;
+	private List<ColumnInfo> columns = new ArrayList<>();
 
 	@PostConstruct
 	private void init() {
@@ -35,7 +37,10 @@ public class UserBean {
 		cities.add("ANKARA");
 		cities.add("ISTANBUL");
 		cities.add("ANTALYA");
-
+	}
+	
+	public List<ColumnInfo> getColumns() {
+		return userService.getColumns();
 	}
 
 	public List<String> getCities() {
