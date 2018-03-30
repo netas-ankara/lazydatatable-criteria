@@ -1,5 +1,5 @@
 # lazydatatable-criteria
-Lazy datatable of primefaces including custom specifications from jpa-criteria api to create queries
+Lazy datatable of primefaces including custom specifications from jpa-criteria api to create queries and dynamic columns feature
 
 ## How to run
 
